@@ -1,0 +1,18 @@
+{
+  "name": "vgcal",
+  "version": "0.0.0",
+  "description": "Hello Expo!",
+  "author": null,
+  "private": true,
+  "main": "main.js",
+  "dependencies": {
+    "axios": "^0.16.1",
+    "expo": "16.0.0",
+    "lodash": "^4.17.4",
+    "moment": "^2.18.1",
+    "react": "16.0.0-alpha.6",
+    "react-native": "https://github.com/expo/react-native/archive/sdk-16.0.0.tar.gz",
+    "request": "^2.81.0",
+    "rrule": "^2.2.0"
+  }
+}
