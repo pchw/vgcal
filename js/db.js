@@ -4,9 +4,20 @@ import moment from 'moment';
 export default class Database {
   constructor() {
     this.db = SQLite.openDatabase({ name: 'db.db' });
-    this.db.transaction(tx => {
-      tx.executeSql(
-        'create table if not exists tournaments (uid text primary key not null, type text, start text, end text, description text, summary text);'
+  }
+
+  prepare() {
+    return new Promise((resolve, reject) => {
+      this.db.transaction(
+        tx => {
+          tx.executeSql(
+            'create table if not exists tournaments (uid text primary key not null, type text, start text, end text, description text, summary text);'
+          );
+        },
+        null,
+        err => {
+          resolve();
+        }
       );
     });
   }
@@ -56,12 +67,44 @@ export default class Database {
   }
 
   findItems({ date }) {
+    let query;
+    if (date) {
+      query = [
+        'select * from tournaments where start between ? and ? order by start',
+        [moment(date).startOf('day'), moment(date).endOf('day')]
+      ];
+    } else {
+      query = ['select * from tournaments order by start', []];
+    }
+    return new Promise((resolve, reject) => {
+      this.db.transaction(
+        tx => {
+          tx.executeSql(
+            ...query,
+            (tx, results) => {
+              resolve(results.rows._array);
+            },
+            (tx, err) => {
+              console.error(err);
+              reject(err);
+            }
+          );
+        },
+        null,
+        err => {
+          // success handler
+        }
+      );
+    });
+  }
+
+  findCurrentMonthItems({ date }) {
     return new Promise((resolve, reject) => {
       this.db.transaction(
         tx => {
           tx.executeSql(
             'select * from tournaments where start between ? and ? order by start',
-            [moment(date).startOf('day'), moment(date).endOf('day')],
+            [moment(date).startOf('month'), moment(date).endOf('month')],
             (tx, results) => {
               resolve(results.rows._array);
             },

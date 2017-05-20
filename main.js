@@ -11,6 +11,7 @@ import {
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import { range } from 'lodash';
 import moment from 'moment';
+import uuid from 'react-native-uuid';
 import ical from './vendor/ical';
 
 const ICAL_URL =
@@ -27,26 +28,36 @@ class App extends React.Component {
     super(props);
     this.state = {
       items: [],
+      plans: {},
       selectedDate: moment()
     };
+
+    this.queryCalendarItem(this.state.selectedDate);
   }
   componentDidMount() {
     const self = this;
     let promises = [];
-    // ical.fromURL(ICAL_URL, {}, function(err, data) {
-    //   for (const key in data) {
-    //     promises.push(db.upsertItem(data[key]));
-    //   }
-    //   Promise.all(promises).then(() => {
-    //     db.findItems({ date: '2017-05-17' }).then(items => {
-    //       self.setState({ items: items });
-    //     });
-    //   });
-    // });
-
-    // db.findItems({date:this.state.selectedDate.format('YYYY-MM-DD')}).then(items => {
-    db.findItems({ date: '2017-05-17' }).then(items => {
-      self.setState({ items: items });
+    ical.fromURL(ICAL_URL, {}, function(err, data) {
+      if (err) {
+        alert(err);
+      }
+      db
+        .prepare()
+        .then(() => {
+          for (const key in data) {
+            promises.push(db.upsertItem(data[key]));
+          }
+          Promise.all(promises)
+            .then(() => {
+              self.queryCalendarItem(self.state.selectedDate);
+            })
+            .catch(err => {
+              alert(err);
+            });
+        })
+        .catch(err => {
+          alert(err);
+        });
     });
   }
   render() {
@@ -59,6 +70,16 @@ class App extends React.Component {
           start={item.start}
           title={item.summary}
           description={item.description}
+        />
+      );
+    }
+    if (notes.length === 0) {
+      notes.push(
+        <Note
+          key={uuid.v1()}
+          start={this.state.selectedDate.format()}
+          title={'予定されている大会はありません'}
+          description={''}
         />
       );
     }
@@ -76,7 +97,10 @@ class App extends React.Component {
             <Text style={styles.headerTitle}>VG Cal</Text>
           </View>
 
-          <TouchableOpacity style={styles.headerItem}>
+          <TouchableOpacity
+            style={styles.headerItem}
+            onPress={this.today.bind(this)}
+          >
             <View>
               <Text style={styles.headerRight}>Today</Text>
             </View>
@@ -84,22 +108,12 @@ class App extends React.Component {
         </View>
         <View style={styles.calendarHeaderContainer}>
           <View style={styles.calendarHeaderItem}>
-            <TouchableOpacity onPress={this.prevYear.bind(this)}>
-              <Entypo name="chevron-left" size={18} color="#333" />
-            </TouchableOpacity>
-            <Text style={styles.calendarHeaderText}>
-              {this.state.selectedDate.format('YYYY')}
-            </Text>
-            <TouchableOpacity onPress={this.nextYear.bind(this)}>
-              <Entypo name="chevron-right" size={18} color="#333" />
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.calendarHeaderItem}>
             <TouchableOpacity onPress={this.prevMonth.bind(this)}>
               <Entypo name="chevron-left" size={18} color="#333" />
             </TouchableOpacity>
             <Text style={styles.calendarHeaderText}>
+              {this.state.selectedDate.format('YYYY')}
+              {' '}
               {this.state.selectedDate.format('MMM')}
             </Text>
             <TouchableOpacity onPress={this.nextMonth.bind(this)}>
@@ -109,7 +123,9 @@ class App extends React.Component {
         </View>
         <Calendar
           style={styles.calendarContainer}
-          date={this.state.selectedDate.format('YYYY-MM')}
+          date={this.state.selectedDate.format('YYYY-MM-DD')}
+          onPress={this.onPressCalendarDate.bind(this)}
+          plans={this.state.plans}
         />
         <View style={styles.noteContainer}>
           <ScrollView>
@@ -119,25 +135,51 @@ class App extends React.Component {
       </View>
     );
   }
-  nextMonth() {
+  queryCalendarItem(date) {
+    promises = [];
+    promises.push(
+      db.findItems({ date: date.format('YYYY-MM-DD') }).then(items => {
+        this.setState({ items: items });
+      })
+    );
+    promises.push(
+      db.findCurrentMonthItems({ date: date.format('YYYY-MM') }).then(items => {
+        plans = {};
+        items.forEach(item => {
+          plans[moment(item.start).format('YYYY-MM-DD')] = true;
+        });
+        this.setState({ plans: plans });
+      })
+    );
+
+    Promise.all(promises, () => {});
+  }
+  onPressCalendarDate(date) {
     this.setState({
-      selectedDate: this.state.selectedDate.clone().add(1, 'month')
+      selectedDate: moment(date)
     });
+    this.queryCalendarItem(moment(date));
+  }
+  nextMonth() {
+    const day = this.state.selectedDate.clone().add(1, 'month');
+    this.setState({
+      selectedDate: day
+    });
+    this.queryCalendarItem(day);
   }
   prevMonth() {
+    const day = this.state.selectedDate.clone().subtract(1, 'month');
     this.setState({
-      selectedDate: this.state.selectedDate.clone().subtract(1, 'month')
+      selectedDate: day
     });
+    this.queryCalendarItem(day);
   }
-  nextYear() {
+  today() {
+    const day = moment();
     this.setState({
-      selectedDate: this.state.selectedDate.clone().add(1, 'year')
+      selectedDate: day
     });
-  }
-  prevYear() {
-    this.setState({
-      selectedDate: this.state.selectedDate.clone().subtract(1, 'year')
-    });
+    this.queryCalendarItem(day);
   }
 }
 
@@ -151,7 +193,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EAB0B0',
     flexDirection: 'row',
     justifyContent: 'space-between',
-    padding: 20,
+    padding: 15,
     marginTop: Constants.statusBarHeight
   },
   headerItem: {
@@ -172,11 +214,12 @@ const styles = StyleSheet.create({
     flex: 16
   },
   calendarContainer: {
-    flex: 15
+    flex: 16
   },
   calendarHeaderContainer: {
-    flex: 2,
-    flexDirection: 'row'
+    flex: 1,
+    flexDirection: 'row',
+    padding: 15
   },
   calendarHeaderItem: {
     flex: 1,

@@ -7,42 +7,14 @@ import moment from 'moment';
 export default class CalendarComponet extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      currentDate: moment(this.props.date)
-    };
-    const currentDate = this.state.currentDate;
-    // 先月の最終日
-    const lastDate = parseInt(
-      moment(this.props.date).subtract(1, 'month').endOf('month').format('D'),
-      10
-    );
-
-    // 今月1日目の週番号
-    const startWeekday = parseInt(
-      currentDate.clone().startOf('month').format('d'),
-      10
-    );
-    const endWeekday = parseInt(
-      currentDate.clone().endOf('month').format('d'),
-      10
-    );
-
-    // 今月カレンダーに表示される先月分
-    const pastMonthDays = range(lastDate - startWeekday + 1, lastDate + 1);
-    // 今月のはじめから終わり
-    const thisMonthDays = range(
-      1,
-      parseInt(currentDate.clone().endOf('month').format('D'), 10) + 1
-    );
-    // 来月カレンダーに表示される来月分
-    const nextMonthDays = range(1, 6 - endWeekday + 1);
-    this.state.pastMonthDays = pastMonthDays;
-    this.state.thisMonthDays = thisMonthDays;
-    this.state.nextMonthDays = nextMonthDays;
+    this.state = this.convertState(props.date);
+    this.state.plans = {};
   }
   componentWillReceiveProps(nextProps) {
     if (nextProps.date) {
-      this.setState(this.convertState(nextProps.date));
+      let stateObj = this.convertState(nextProps.date);
+      stateObj.plans = nextProps.plans;
+      this.setState(stateObj);
     }
   }
   convertState(date) {
@@ -52,6 +24,15 @@ export default class CalendarComponet extends React.Component {
       moment(date).subtract(1, 'month').endOf('month').format('D'),
       10
     );
+    const lastMonth = moment(date)
+      .subtract(1, 'month')
+      .startOf('month')
+      .format('YYYY-MM');
+    const nextMonth = moment(date)
+      .add(1, 'month')
+      .startOf('month')
+      .format('YYYY-MM');
+    const currentMonth = currentDate.format('YYYY-MM');
 
     // 今月1日目の週番号
     const startWeekday = parseInt(
@@ -64,14 +45,23 @@ export default class CalendarComponet extends React.Component {
     );
 
     // 今月カレンダーに表示される先月分
-    const pastMonthDays = range(lastDate - startWeekday + 1, lastDate + 1);
+    const pastMonthDays = range(
+      lastDate - startWeekday + 1,
+      lastDate + 1
+    ).map(d => {
+      return `${lastMonth}-${('0' + d).slice(-2)}`;
+    });
     // 今月のはじめから終わり
     const thisMonthDays = range(
       1,
       parseInt(currentDate.clone().endOf('month').format('D'), 10) + 1
-    );
+    ).map(d => {
+      return `${currentMonth}-${('0' + d).slice(-2)}`;
+    });
     // 来月カレンダーに表示される来月分
-    const nextMonthDays = range(1, 6 - endWeekday + 1);
+    const nextMonthDays = range(1, 6 - endWeekday + 1).map(d => {
+      return `${nextMonth}-${('0' + d).slice(-2)}`;
+    });
 
     return {
       currentDate: currentDate,
@@ -136,24 +126,51 @@ export default class CalendarComponet extends React.Component {
   }
   renderDays(weekDays) {
     return weekDays.map((day, index) => {
+      let dayForDisplay;
+      if (day) {
+        // 2017-05-06 -> 06
+        dayForDisplay = day.split('-')[2];
+      }
+      let colorStyle = styles.dayColor;
+      if (
+        moment(day).format('YYYY-MM-DD') ===
+        this.state.currentDate.format('YYYY-MM-DD')
+      ) {
+        colorStyle = styles.currentDayColor;
+      } else if (
+        moment(day).format('YYYY-MM') !==
+        this.state.currentDate.format('YYYY-MM')
+      ) {
+        colorStyle = styles.anotherMonthColor;
+      } else if (this.state.plans[moment(day).format('YYYY-MM-DD')]) {
+        colorStyle = styles.planDayColor;
+      }
       return (
         <TouchableOpacity
           label={day}
           key={index}
-          onPress={() => {}}
-          style={styles.day}
+          onPress={() => {
+            this.onPressCalendarDate.bind(this)(day);
+          }}
+          style={[styles.day, colorStyle]}
           noDefaultStyles={true}
         >
           <Text
             style={styles.dayText}
             adjustsFontSizeToFit={true}
-            minimumFontScale={0.5}
+            minimumFontScale={0.8}
           >
-            {day}
+            {dayForDisplay}
           </Text>
         </TouchableOpacity>
       );
     });
+  }
+  onPressCalendarDate(date) {
+    if (!this.props.onPress) {
+      return;
+    }
+    this.props.onPress(date);
   }
 }
 
@@ -171,13 +188,31 @@ const styles = StyleSheet.create({
   },
   day: {
     flex: 1,
-    backgroundColor: '#F5F5F5',
-    padding: 17,
+    padding: 10,
     margin: 2
+  },
+  dayColor: {
+    backgroundColor: '#FFFFFB',
+    borderColor: '#BDC0BA',
+    borderWidth: 1
+  },
+  currentDayColor: {
+    backgroundColor: '#51A8DD44',
+    borderColor: '#0C0C0C',
+    borderWidth: 1
+  },
+  anotherMonthColor: {
+    backgroundColor: '#FFFFFB',
+    borderColor: '#FFFFFB',
+    borderWidth: 1
+  },
+  planDayColor: {
+    backgroundColor: '#33A6B888',
+    borderColor: '#BDC0BA',
+    borderWidth: 1
   },
   dayText: {
     textAlign: 'center',
-    color: '#A9A9A9',
-    fontSize: 15
+    color: '#1C1C1C'
   }
 });
