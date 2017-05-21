@@ -22,6 +22,7 @@ let db = new Database();
 
 import Calendar from './js/CalendarComponent';
 import Note from './js/NoteComponent';
+import Loading from './js/LoadingComponent';
 
 class App extends React.Component {
   constructor(props) {
@@ -29,7 +30,9 @@ class App extends React.Component {
     this.state = {
       items: [],
       plans: {},
-      selectedDate: moment()
+      selectedDate: moment(),
+      isLoading: false,
+      loadedCount: 0
     };
 
     this.queryCalendarItem(this.state.selectedDate);
@@ -37,6 +40,7 @@ class App extends React.Component {
   componentDidMount() {
     const self = this;
     let promises = [];
+    this.setState({ isLoading: true });
     ical.fromURL(ICAL_URL, {}, function(err, data) {
       if (err) {
         alert(err);
@@ -45,10 +49,18 @@ class App extends React.Component {
         .prepare()
         .then(() => {
           for (const key in data) {
-            promises.push(db.upsertItem(data[key]));
+            promises.push(
+              new Promise((resolve, reject) => {
+                return db.upsertItem(data[key]).then(() => {
+                  self.incrementLoaded();
+                  return resolve();
+                });
+              })
+            );
           }
           Promise.all(promises)
             .then(() => {
+              self.setState({ isLoading: false });
               self.queryCalendarItem(self.state.selectedDate);
             })
             .catch(err => {
@@ -83,8 +95,17 @@ class App extends React.Component {
         />
       );
     }
+    let loadingView;
+    if (this.state.isLoading) {
+      loadingView = (
+        <Loading
+          text={`Loading calendar...[${this.state.loadedCount} loaded]`}
+        />
+      );
+    }
     return (
       <View style={styles.container}>
+        {loadingView}
         <View style={styles.header}>
           <TouchableOpacity style={styles.headerItem}>
             <View style={styles.headerButton}>
@@ -135,21 +156,41 @@ class App extends React.Component {
       </View>
     );
   }
+  incrementLoaded() {
+    this.setState({
+      loadedCount: ++this.state.loadedCount
+    });
+  }
   queryCalendarItem(date) {
     promises = [];
     promises.push(
-      db.findItems({ date: date.format('YYYY-MM-DD') }).then(items => {
-        this.setState({ items: items });
-      })
+      db
+        .prepare()
+        .then(() => {
+          return db.findItems({ date: date.format('YYYY-MM-DD') });
+        })
+        .then(items => {
+          this.setState({ items: items });
+          return Promise.resolve();
+        })
+        .catch(err => {
+          alert(err);
+        })
     );
     promises.push(
-      db.findCurrentMonthItems({ date: date.format('YYYY-MM') }).then(items => {
-        plans = {};
-        items.forEach(item => {
-          plans[moment(item.start).format('YYYY-MM-DD')] = true;
-        });
-        this.setState({ plans: plans });
-      })
+      db
+        .prepare()
+        .then(() => {
+          return db.findCurrentMonthItems({ date: date.format('YYYY-MM') });
+        })
+        .then(items => {
+          plans = {};
+          (items || []).forEach(item => {
+            plans[moment(item.start).format('YYYY-MM-DD')] = true;
+          });
+          this.setState({ plans: plans });
+          return Promise.resolve();
+        })
     );
 
     Promise.all(promises, () => {});

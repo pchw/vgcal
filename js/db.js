@@ -11,10 +11,12 @@ export default class Database {
       this.db.transaction(
         tx => {
           tx.executeSql(
-            'create table if not exists tournaments (uid text primary key not null, type text, start text, end text, description text, summary text);'
+            'create table if not exists tournaments (uid text primary key not null, type text, start DATETIME, end DATETIME, description text, summary text);'
           );
         },
-        null,
+        err => {
+          reject(err);
+        },
         err => {
           resolve();
         }
@@ -43,8 +45,8 @@ export default class Database {
             `replace into tournaments (${fields.join(',')}) values (${placeholders})`,
             [
               item.type,
-              item.start,
-              item.end,
+              moment(item.start).format('YYYY-MM-DDTHH:mm:ss'),
+              moment(item.end).format('YYYY-MM-DDTHH:mm:ss'),
               item.uid,
               item.description,
               item.summary
@@ -71,7 +73,10 @@ export default class Database {
     if (date) {
       query = [
         'select * from tournaments where start between ? and ? order by start',
-        [moment(date).startOf('day'), moment(date).endOf('day')]
+        [
+          moment(date).startOf('day').format('YYYY-MM-DDTHH:mm:ss'),
+          moment(date).endOf('day').format('YYYY-MM-DDTHH:mm:ss')
+        ]
       ];
     } else {
       query = ['select * from tournaments order by start', []];
@@ -104,7 +109,10 @@ export default class Database {
         tx => {
           tx.executeSql(
             'select * from tournaments where start between ? and ? order by start',
-            [moment(date).startOf('month'), moment(date).endOf('month')],
+            [
+              moment(date).startOf('month').format('YYYY-MM-DDTHH:mm:ss'),
+              moment(date).endOf('month').format('YYYY-MM-DDTHH:mm:ss')
+            ],
             (tx, results) => {
               resolve(results.rows._array);
             },
