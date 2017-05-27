@@ -247,7 +247,7 @@ class App extends React.Component {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFF8',
     flex: 1
   },
   header: {
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
-    marginTop: Constants.statusBarHeight
+    paddingTop: Constants.statusBarHeight + 15
   },
   headerItem: {
     flex: 1,

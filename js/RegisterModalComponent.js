@@ -9,7 +9,8 @@ import {
   ScrollView,
   Modal,
   TextInput,
-  DatePickerIOS
+  DatePickerIOS,
+  KeyboardAvoidingView
 } from 'react-native';
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import moment from 'moment';
@@ -26,10 +27,22 @@ export default class RegisterModalComponent extends React.Component {
       startDate: now,
       startTime: now,
       endTime: now,
-      message: ""
+      message: "",
+      messageType: ""
     };
   }
   postGdoc() {
+    if (!this.state.name) {
+      return this.setState({
+        message: '大会名を入力してください',
+        messageType: 'error'
+      });
+    } else if (!this.state.detail) {
+      return this.setState({
+        message: '大会詳細を入力してください',
+        messageType: 'error'
+      });
+    }
     // URL: https://docs.google.com/forms/d/e/1FAIpQLSfGiNE1u9QHvAEAPzEurRi86NJ1bcxZ2fAYRorsLnFd9sxvzA/formResponse
     // 大会名 entry.176820066
     // 大会詳細 entry.1436410033
@@ -56,26 +69,32 @@ export default class RegisterModalComponent extends React.Component {
         const now = new Date();
         this.setState({
           message: `${this.state.name} を登録しました`,
+          messageType: '',
           name: '',
           detail: '',
           startDate: now,
           startTime: now,
           endTime: now
-        })
+        });
       })
       .catch(err => {
         console.error(err);
         this.setState({
           message: 'エラーが発生しました',
+          messageType: 'error'
         });
       });
   }
   render() {
     let message;
+    let messageStyle;
     if (this.state.message) {
+      if (this.state.messageType === 'error') {
+        messageStyle = {backgroundColor: "#CB1B45CC"};
+      }
       message = (
         <TouchableOpacity onPress={()=>{this.setState({message: ""});}}>
-          <View style={styles.subHeader}>
+          <View style={[styles.subHeader, messageStyle]}>
             <Text>{this.state.message}</Text>
           </View>
         </TouchableOpacity>
@@ -83,98 +102,102 @@ export default class RegisterModalComponent extends React.Component {
     }
     return (
       <Modal animationType={"slide"}>
-        <View style={styles.screen}>
-          <View style={styles.header}>
-            <View style={styles.headerItem}>
-              <TouchableOpacity onPress={this.postGdoc.bind(this)}>
-                <Text>登録</Text>
-              </TouchableOpacity>
+        <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
+          <View style={styles.screen}>
+            <View style={styles.header}>
+              <View style={styles.headerItem}>
+                <TouchableOpacity onPress={this.postGdoc.bind(this)}>
+                  <Text>登録</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.headerItem}>
+                <Text style={{textAlign: 'center'}}>大会情報を入力</Text>
+              </View>
+              <View style={styles.headerItem}>
+                <TouchableOpacity onPress={this.props.onClose.bind(this)}>
+                  <Text style={styles.rightText}>閉じる</Text>
+                </TouchableOpacity>
+              </View>
             </View>
-            <View style={styles.headerItem}>
-              <Text style={{textAlign: 'center'}}>大会情報を入力</Text>
-            </View>
-            <View style={styles.headerItem}>
-              <TouchableOpacity onPress={this.props.onClose.bind(this)}>
-                <Text style={styles.rightText}>閉じる</Text>
-              </TouchableOpacity>
+            {message}
+            <View style={styles.body}>
+              <ScrollView>
+                <View style={styles.formRow}>
+                  <View style={styles.formItem}>
+                    <Text>大会名</Text>
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    value={this.state.name}
+                    onChangeText={t => {
+                      this.setState({ name: t });
+                    }}
+                  />
+                </View>
+                <View style={styles.formRow}>
+                  <View style={styles.formItem}>
+                    <Text>大会詳細</Text>
+                  </View>
+                  <TextInput
+                    style={[styles.input, { height: 300 }]}
+                    multiline={true}
+                    value={this.state.detail}
+                    onChangeText={t => {
+                      this.setState({ detail: t });
+                    }}
+                  />
+                </View>
+                <View style={styles.formRow}>
+                  <View style={styles.formItem}>
+                    <Text>大会開催日</Text>
+                  </View>
+                  <DatePickerIOS
+                    date={this.state.startDate}
+                    minimumDate={new Date()}
+                    mode={'date'}
+                    onDateChange={d => {
+                      this.setState({
+                        startDate: d
+                      });
+                    }}
+                  />
+                </View>
+                <View style={styles.formRow}>
+                  <View style={styles.formItem}>
+                    <Text>開始時刻</Text>
+                  </View>
+                  <DatePickerIOS
+                    date={this.state.startTime}
+                    minimumDate={new Date()}
+                    minuteInterval={30}
+                    mode={'time'}
+                    onDateChange={d => {
+                      this.setState({
+                        startTime: d
+                      });
+                    }}
+                  />
+                </View>
+                <View style={styles.formRow}>
+                  <View style={styles.formItem}>
+                    <Text>終了時刻</Text>
+                  </View>
+                  <DatePickerIOS
+                    date={this.state.endTime}
+                    minimumDate={new Date()}
+                    minuteInterval={30}
+                    mode={'time'}
+                    onDateChange={d => {
+                      this.setState({
+                        endTime: d
+                      });
+                    }}
+                  />
+                </View>
+              </ScrollView>
             </View>
           </View>
-          {message}
-          <View style={styles.body}>
-            <ScrollView>
-              <View style={styles.formRow}>
-                <View style={styles.formItem}>
-                  <Text>大会名</Text>
-                </View>
-                <TextInput
-                  style={styles.input}
-                  onChangeText={t => {
-                    this.setState({ name: t });
-                  }}
-                />
-              </View>
-              <View style={styles.formRow}>
-                <View style={styles.formItem}>
-                  <Text>大会詳細</Text>
-                </View>
-                <TextInput
-                  style={[styles.input, { height: 300 }]}
-                  multiline={true}
-                  onChangeText={t => {
-                    this.setState({ detail: t });
-                  }}
-                />
-              </View>
-              <View style={styles.formRow}>
-                <View style={styles.formItem}>
-                  <Text>大会開催日</Text>
-                </View>
-                <DatePickerIOS
-                  date={this.state.startDate}
-                  minimumDate={new Date()}
-                  mode={'date'}
-                  onDateChange={d => {
-                    this.setState({
-                      startDate: d
-                    });
-                  }}
-                />
-              </View>
-              <View style={styles.formRow}>
-                <View style={styles.formItem}>
-                  <Text>開始時刻</Text>
-                </View>
-                <DatePickerIOS
-                  date={this.state.startTime}
-                  minimumDate={new Date()}
-                  minuteInterval={30}
-                  mode={'time'}
-                  onDateChange={d => {
-                    this.setState({
-                      startTime: d
-                    });
-                  }}
-                />
-              </View>
-              <View style={styles.formRow}>
-                <View style={styles.formItem}>
-                  <Text>終了時刻</Text>
-                </View>
-                <DatePickerIOS
-                  date={this.state.endTime}
-                  minimumDate={new Date()}
-                  minuteInterval={30}
-                  mode={'time'}
-                  onDateChange={d => {
-                    this.setState({
-                      endTime: d
-                    });
-                  }}
-                />
-              </View>
-            </ScrollView>
-          </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     );
   }
@@ -193,7 +216,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     padding: 15,
-    marginTop: Constants.statusBarHeight
+    paddingTop: Constants.statusBarHeight + 15
   },
   headerItem: {
     flex: 1,

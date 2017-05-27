@@ -15,6 +15,9 @@
     "assetExts": ["ttf", "mp4"]
   },
   "ios": {
-    "supportsTablet": true
+    "supportsTablet": true,
+    "isRemoteJSEnabled": false,
+    "bundleIdentifier": "com.phosphoricholic.vgcal",
+    "buildNumber": "6"
   }
 }
