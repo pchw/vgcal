@@ -10,16 +10,17 @@ import {
 } from 'react-native';
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import moment from 'moment';
+import Autolink from 'react-native-autolink';
 
 export default class Note extends React.Component {
   constructor(props) {
     super(props);
     const start = moment(props.start);
     this.state = {
-      startTime: start.format('hh:mm A'),
+      startTime: start.format('A hh:mm'),
       startDate: start.format('DD'),
       startMonth: start.format('MMM'),
-      startWeekday: start.format('dddd')
+      startWeekday: start.format('(ddd)')
     };
   }
   render() {
@@ -29,18 +30,14 @@ export default class Note extends React.Component {
           <Text style={styles.notesText}>
             {this.props.title}
           </Text>
-          <Text style={styles.notesDescription}>
-            {this.props.description}
-          </Text>
+          <Autolink style={styles.notesDescription} text={this.props.description} />
         </View>
 
         <View style={[styles.notesSelectedDate]}>
-          <Text style={styles.smallText}>{this.state.startTime}</Text>
-          <Text style={styles.bigText}>{this.state.startDate}</Text>
           <Text style={styles.smallText}>{this.state.startMonth}</Text>
-          <View style={styles.inline}>
-            <Text style={styles.smallText}>{this.state.startWeekday}</Text>
-          </View>
+          <Text style={styles.bigText}>{this.state.startDate}</Text>
+          <Text style={styles.smallText}>{this.state.startWeekday}</Text>
+          <Text style={styles.smallText}>{this.state.startTime}</Text>
         </View>
       </View>
     );

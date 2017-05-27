@@ -9,7 +9,6 @@
   "primaryColor": "#cccccc",
   "icon": "./assets/icons/app.png",
   "loading": {
-    "icon": "./assets/icons/loading.png",
     "hideExponentText": false
   },
   "packagerOpts": {
