@@ -168,7 +168,6 @@ export default class RegisterModalComponent extends React.Component {
                   </View>
                   <DatePickerIOS
                     date={this.state.startTime}
-                    minimumDate={new Date()}
                     minuteInterval={30}
                     mode={'time'}
                     onDateChange={d => {
@@ -184,7 +183,6 @@ export default class RegisterModalComponent extends React.Component {
                   </View>
                   <DatePickerIOS
                     date={this.state.endTime}
-                    minimumDate={new Date()}
                     minuteInterval={30}
                     mode={'time'}
                     onDateChange={d => {
