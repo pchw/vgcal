@@ -27,8 +27,8 @@ export default class RegisterModalComponent extends React.Component {
       startDate: now,
       startTime: now,
       endTime: now,
-      message: "",
-      messageType: ""
+      message: '',
+      messageType: ''
     };
   }
   postGdoc() {
@@ -90,10 +90,14 @@ export default class RegisterModalComponent extends React.Component {
     let messageStyle;
     if (this.state.message) {
       if (this.state.messageType === 'error') {
-        messageStyle = {backgroundColor: "#CB1B45CC"};
+        messageStyle = { backgroundColor: '#CB1B45CC' };
       }
       message = (
-        <TouchableOpacity onPress={()=>{this.setState({message: ""});}}>
+        <TouchableOpacity
+          onPress={() => {
+            this.setState({ message: '' });
+          }}
+        >
           <View style={[styles.subHeader, messageStyle]}>
             <Text>{this.state.message}</Text>
           </View>
@@ -101,8 +105,8 @@ export default class RegisterModalComponent extends React.Component {
       );
     }
     return (
-      <Modal animationType={"slide"}>
-        <KeyboardAvoidingView behavior={'padding'} style={{flex: 1}}>
+      <Modal animationType={'slide'}>
+        <KeyboardAvoidingView behavior={'padding'} style={{ flex: 1 }}>
           <View style={styles.screen}>
             <View style={styles.header}>
               <View style={styles.headerItem}>
@@ -111,7 +115,7 @@ export default class RegisterModalComponent extends React.Component {
                 </TouchableOpacity>
               </View>
               <View style={styles.headerItem}>
-                <Text style={{textAlign: 'center'}}>大会情報を入力</Text>
+                <Text style={{ textAlign: 'center' }}>大会情報を入力</Text>
               </View>
               <View style={styles.headerItem}>
                 <TouchableOpacity onPress={this.props.onClose.bind(this)}>

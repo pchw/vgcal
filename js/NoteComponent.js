@@ -30,7 +30,10 @@ export default class Note extends React.Component {
           <Text style={styles.notesText}>
             {this.props.title}
           </Text>
-          <Autolink style={styles.notesDescription} text={this.props.description} />
+          <Autolink
+            style={styles.notesDescription}
+            text={this.props.description}
+          />
         </View>
 
         <View style={[styles.notesSelectedDate]}>

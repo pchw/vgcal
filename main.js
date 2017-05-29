@@ -40,6 +40,9 @@ class App extends React.Component {
     this.queryCalendarItem(this.state.selectedDate);
   }
   componentDidMount() {
+    this.fetchCalendar();
+  }
+  fetchCalendar() {
     const self = this;
     let promises = [];
     this.setState({ isLoading: true });
@@ -62,7 +65,10 @@ class App extends React.Component {
           }
           Promise.all(promises)
             .then(() => {
-              self.setState({ isLoading: false });
+              self.setState({
+                isLoading: false,
+                loadedCount: 0
+              });
               self.queryCalendarItem(self.state.selectedDate);
             })
             .catch(err => {
@@ -103,6 +109,7 @@ class App extends React.Component {
         <RegisterModal
           onClose={() => {
             this.setState({ isShowRegisterModal: false });
+            this.fetchCalendar();
           }}
         />
       );
@@ -275,9 +282,7 @@ const styles = StyleSheet.create({
   noteContainer: {
     flex: 16
   },
-  calendarContainer: {
-
-  },
+  calendarContainer: {},
   calendarHeaderContainer: {
     flex: 1,
     flexDirection: 'row',
