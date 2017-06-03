@@ -11,7 +11,7 @@ import {
 import { Ionicons, Entypo } from '@expo/vector-icons';
 import { range } from 'lodash';
 import moment from 'moment';
-import uuid from 'react-native-uuid';
+import uuid from './js/guid';
 import ical from './vendor/ical';
 
 const ICAL_URL =
@@ -96,7 +96,7 @@ class App extends React.Component {
     if (notes.length === 0) {
       notes.push(
         <Note
-          key={uuid.v1()}
+          key={uuid()}
           start={this.state.selectedDate.format()}
           title={'予定されている大会はありません'}
           description={''}

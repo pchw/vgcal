@@ -14,7 +14,6 @@
     "react": "16.0.0-alpha.6",
     "react-native": "https://github.com/expo/react-native/archive/sdk-16.0.0.tar.gz",
     "react-native-autolink": "^1.0.0",
-    "react-native-uuid": "^1.4.9",
     "request": "^2.81.0",
     "rrule": "^2.2.0"
   }
