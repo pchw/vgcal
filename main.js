@@ -24,6 +24,7 @@ import Calendar from './js/CalendarComponent';
 import Note from './js/NoteComponent';
 import Loading from './js/LoadingComponent';
 import RegisterModal from './js/RegisterModalComponent';
+import InquireModal from './js/InquireModalComponent';
 
 class App extends React.Component {
   constructor(props) {
@@ -34,13 +35,14 @@ class App extends React.Component {
       selectedDate: moment(),
       isLoading: false,
       loadedCount: 0,
-      isShowRegisterModal: false
+      isShowRegisterModal: false,
+      isShowInquireModal: false
     };
 
     this.queryCalendarItem(this.state.selectedDate);
   }
   componentDidMount() {
-    this.fetchCalendar();
+    //this.fetchCalendar();
   }
   fetchCalendar() {
     const self = this;
@@ -103,13 +105,23 @@ class App extends React.Component {
         />
       );
     }
-    let registerModalView;
+    let modalView;
     if (this.state.isShowRegisterModal) {
-      registerModalView = (
+      modalView = (
         <RegisterModal
           onClose={() => {
             this.setState({ isShowRegisterModal: false });
             this.fetchCalendar();
+          }}
+        />
+      );
+    }
+
+    if (this.state.isShowInquireModal) {
+      modalView = (
+        <InquireModal
+          onClose={() => {
+            this.setState({ isShowInquireModal: false });
           }}
         />
       );
@@ -126,7 +138,7 @@ class App extends React.Component {
     return (
       <View style={styles.container}>
         {loadingView}
-        {registerModalView}
+        {modalView}
         <View style={styles.header}>
           <TouchableOpacity
             style={styles.headerItem}
@@ -143,10 +155,10 @@ class App extends React.Component {
 
           <TouchableOpacity
             style={styles.headerItem}
-            onPress={this.today.bind(this)}
+            onPress={this.showInquire.bind(this)}
           >
             <View>
-              <Text style={styles.headerRight}>Today</Text>
+              <Text style={styles.headerRight}>問い合わせ</Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -155,11 +167,13 @@ class App extends React.Component {
             <TouchableOpacity onPress={this.prevMonth.bind(this)}>
               <Entypo name="chevron-left" size={18} color="#333" />
             </TouchableOpacity>
-            <Text style={styles.calendarHeaderText}>
-              {this.state.selectedDate.format('YYYY')}
-              {' '}
-              {this.state.selectedDate.format('MMM')}
-            </Text>
+            <TouchableOpacity onPress={this.today.bind(this)}>
+              <Text style={styles.calendarHeaderText}>
+                {this.state.selectedDate.format('YYYY')}
+                {' '}
+                {this.state.selectedDate.format('MMM')}
+              </Text>
+            </TouchableOpacity>
             <TouchableOpacity onPress={this.nextMonth.bind(this)}>
               <Entypo name="chevron-right" size={18} color="#333" />
             </TouchableOpacity>
@@ -248,6 +262,11 @@ class App extends React.Component {
   showRegisterModal() {
     this.setState({
       isShowRegisterModal: true
+    });
+  }
+  showInquire() {
+    this.setState({
+      isShowInquireModal: true
     });
   }
 }
