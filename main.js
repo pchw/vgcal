@@ -42,7 +42,7 @@ class App extends React.Component {
     this.queryCalendarItem(this.state.selectedDate);
   }
   componentDidMount() {
-    //this.fetchCalendar();
+    this.fetchCalendar();
   }
   fetchCalendar() {
     const self = this;
