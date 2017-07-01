@@ -19,8 +19,8 @@ import moment from 'moment';
 import qs from 'qs';
 import axios from 'axios';
 
-const ODAIBAKO_TOKEN_URL = 'http://odaibako.net/u/pchw';
-const ODAIBAKO_POST_URL = 'http://odaibako.net/post/request/pchw';
+const ODAIBAKO_TOKEN_URL = 'https://odaibako.net/u/pchw';
+const ODAIBAKO_POST_URL = 'https://odaibako.net/post/request/pchw';
 
 export default class InquireModalComponent extends React.Component {
   constructor(props) {
@@ -86,7 +86,7 @@ export default class InquireModalComponent extends React.Component {
         'Accept-Encoding': 'gzip, deflate',
         'Accept-Language': 'ja,en-US;q=0.8,en;q=0.6',
         'Connection': 'keep-alive',
-        'Origin': 'http://odaibako.net',
+        'Origin': 'https://odaibako.net',
         'Cookie': this.state.cookie,
         'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
       },
